@@ -1,3 +1,56 @@
+    <style>
+      /* Style and make language select dropdown scrollable */
+      #sidebar-language-select, #mobile-language-select {
+        max-height: 180px;
+        overflow-y: auto;
+        min-width: 140px;
+        background: #18181b;
+        color: #b4e600;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        margin-left: 4px;
+        appearance: none;
+        cursor: pointer;
+        transition: border 0.2s, box-shadow 0.2s;
+      }
+      #sidebar-language-select:focus, #mobile-language-select:focus {
+        outline: none;
+        border: 1.5px solid #b4e600;
+        box-shadow: 0 0 0 2px #b4e60033;
+      }
+      #sidebar-language-select option, #mobile-language-select option {
+        color: #18181b;
+        background: #fffbe6;
+        font-weight: 500;
+        padding: 4px 8px;
+      }
+      /* Custom arrow for select */
+      #sidebar-language-select, #mobile-language-select {
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23b4e600" height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 18px 18px;
+      }
+    </style>
+  <style>
+    /* Hide Google Translate banner and iframe to prevent UI shift */
+    .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon, .goog-te-balloon-frame, #goog-gt-tt, .goog-te-menu-value {
+      display: none !important;
+    }
+    body { top: 0 !important; }
+    .goog-te-combo { margin: 0 !important; }
+    .goog-te-banner-frame { display: none !important; }
+    #goog-gt-tt { display: none !important; }
+    .goog-tooltip { display: none !important; }
+    .goog-tooltip:hover { display: none !important; }
+    .goog-text-highlight { background: none !important; box-shadow: none !important; }
+    /* Prevent page from shifting down */
+    html { margin-top: 0 !important; }
+  </style>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -182,6 +235,11 @@
       animation: squareProgress 2s linear infinite;
       animation-play-state: paused;
   }
+
+  /* Notification dot */
+  .notification-wrap { position: relative; display: inline-flex; align-items: center; }
+  .notif-dot { position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.9); animation: blink 1.6s infinite; }
+  @keyframes blink { 0% { opacity: 1 } 50% { opacity: 0.25 } 100% { opacity: 1 } }
 
   /* Activate animation only when ring is visible */
   .connect-ring.active rect.progress {
@@ -857,8 +915,25 @@
         <span class="font-bold text-xl">HUB</span>
       </a>
       <nav class="ml-auto flex items-center gap-4">
-        <a class="text-sm text-slate-300 hover:text-white" href="/rebellion">Cloud Rebellion</a>
+        <a class="text-sm text-slate-300 hover:text-white cloud-rebellion-link" href="/rebellion">Cloud Rebellion</a>
         <a class="text-sm text-slate-300 hover:text-white" href="https://docs.acurast.com/">Documentation</a>
+        <!-- Notification icon (desktop, after nav links) -->
+        <div class="notification-desktop-right md:flex items-center ml-2" style="margin-left:8px;">
+          <div id="notificationDesktop" class="notification-wrap" style="position:relative;">
+            <img src="assets/Notification.svg" alt="Notifications" id="notificationIcon" style="height:28px;width:28px;filter:invert(1) brightness(2) grayscale(1);" />
+            <span class="notif-dot" aria-hidden="true"></span>
+          </div>
+        </div>
+        <style>
+          /* Hide Cloud Rebellion in header on mobile */
+          @media (max-width: 767px) {
+            .cloud-rebellion-link { display: none !important; }
+            .notification-desktop-right { display: none !important; }
+          }
+          @media (min-width: 768px) {
+            .notification-desktop-right { display: flex !important; align-items: center; }
+          }
+        </style>
       </nav>
     </div>
   </header>
@@ -869,141 +944,216 @@
       <path d="M3 6h18M3 12h18M3 18h18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>
+  <!-- Notification icon (mobile) placed at right -->
+  <button id="mobile-notification-button" aria-label="Notifications" class="md:hidden fixed top-16 right-4 z-40 bg-transparent p-2 rounded">
+    <div class="notification-wrap" style="position:relative;">
+      <img src="assets/Notification.svg" alt="Notifications" style="height:24px;width:24px;filter:invert(1) brightness(2) grayscale(1);" />
+      <span class="notif-dot" aria-hidden="true"></span>
+    </div>
+  </button>
+  <style>
+    /* Hide Cloud Rebellion in header on mobile */
+    @media (max-width: 767px) {
+      .cloud-rebellion-link { display: none !important; }
+    }
+  </style>
 
   <main class="min-h-screen pt-28">
     <div class="md:flex max-w-6xl mx-auto">
       <aside class="desktop-aside flex-col w-64 mr-8 shrink-0 sticky top-28 h-[calc(100vh-7rem)] p-4 bg-black/40 border border-slate-800 rounded-lg">
+        <!-- Fix Issue sticky button (desktop) -->
+        <div style="margin-bottom:12px;">
+          <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="block w-full text-center py-2 px-3 rounded bg-lime-400 text-black font-bold">Fix Issue</a>
+        </div>
         <nav class="flex-1 overflow-auto">
           <ul class="space-y-2 text-lg">
               <li>
-              <a href="/" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                   <img src="assets/Dashboard.svg" class="menu-icon" alt="">Dashboard
-              </a>
+                </a>
             </li>
             <li>
-                <a href="/balances" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Balance.svg" class="menu-icon" alt="">Balances
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Staking.svg" class="menu-icon" alt="">Staking
               </a>
             </li>
 
             <li class="mt-2 font-semibold text-slate-300">Network</li>
             <li>
-              <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+              <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Network.svg" class="menu-icon" alt="">Network
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Bridge.svg" class="menu-icon" alt="">Bridge
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Migration.svg" class="menu-icon" alt="">Migration
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Conversion.svg" class="menu-icon" alt="">Conversion
               </a>
             </li>
 
             <li class="mt-2 font-semibold text-slate-300">Cloud Rebellion</li>
             <li>
-              <a href="/rebellion" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+              <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Notification.svg" class="menu-icon" alt="">Cloud Rebellion
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Activities.svg" class="menu-icon" alt="">Quests
               </a>
             </li>
             <li>
-                <a href="/airdrop" class="flex items-center gap-3 px-2 py-2 rounded bg-slate-700 text-[#888888] font-bold">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded bg-slate-700 text-[#888888] font-bold">
                 <img src="assets/Airdrop.svg" class="menu-icon" alt="">Airdrop
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Seasons.svg" class="menu-icon" alt="">Seasons
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Lootboxes.svg" class="menu-icon" alt="">Lootboxes
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Mindshare.svg" class="menu-icon" alt="">Mindshare
               </a>
             </li>
 
             <li class="mt-3 font-semibold text-slate-300">Developer</li>
             <li>
-              <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+              <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Advanced deploy.svg" class="menu-icon" alt="">Instant Deploy
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Advanced deploy.svg" class="menu-icon" alt="">Advanced Deploy
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Deployments.svg" class="menu-icon" alt="">Deployments
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Deployments.svg" class="menu-icon" alt="">Processor
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Phones.svg" class="menu-icon" alt="">Phones
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Activities.svg" class="menu-icon" alt="">Activities
               </a>
             </li>
 
             <li class="mt-3 font-semibold text-slate-300">Resources</li>
             <li>
-              <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+              <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Shop.svg" class="menu-icon" alt="">Shop
               </a>
             </li>
             <li>
-                <a href="https://docs.acurast.com/" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/acurast-logo.svg" class="menu-icon" alt="">Documentation
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Network.svg" class="menu-icon" alt="">Network
               </a>
             </li>
             <li>
-                <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
                 <img src="assets/Acurast-dark-bg.svg" class="menu-icon" alt="">Acurast Canary
               </a>
             </li>
 
             <li class="mt-3 font-semibold text-slate-300">Language</li>
             <li>
-              <a href="#" class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
-                <img src="assets/acurast-logo.svg" class="menu-icon" alt="">English
-              </a>
+              <div class="flex items-center gap-3 px-2 py-2 rounded text-[#888888] font-bold hover:bg-slate-700">
+                <img src="assets/acurast-logo.svg" class="menu-icon" alt=""> 
+                <select id="sidebar-language-select" class="bg-transparent text-[#888888] font-bold focus:outline-none language-select">
+                  <option value="en" selected>English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="de">Deutsch</option>
+                  <option value="zh-CN">中文 (简体)</option>
+                  <option value="zh-TW">中文 (繁體)</option>
+                  <option value="ja">日本語</option>
+                  <option value="ru">Русский</option>
+                  <option value="ar">العربية</option>
+                  <option value="pt">Português</option>
+                  <option value="it">Italiano</option>
+                  <option value="tr">Türkçe</option>
+                  <option value="ko">한국어</option>
+                  <option value="pl">Polski</option>
+                  <option value="nl">Nederlands</option>
+                  <option value="sv">Svenska</option>
+                  <option value="uk">Українська</option>
+                  <option value="vi">Tiếng Việt</option>
+                  <option value="th">ไทย</option>
+                  <option value="hi">हिन्दी</option>
+                  <option value="id">Bahasa Indonesia</option>
+                  <option value="fa">فارسی</option>
+                  <option value="he">עברית</option>
+                  <option value="el">Ελληνικά</option>
+                  <option value="cs">Čeština</option>
+                  <option value="ro">Română</option>
+                  <option value="hu">Magyar</option>
+                  <option value="fi">Suomi</option>
+                  <option value="da">Dansk</option>
+                  <option value="no">Norsk</option>
+                  <option value="bg">Български</option>
+                  <option value="hr">Hrvatski</option>
+                  <option value="sk">Slovenčina</option>
+                  <option value="sl">Slovenščina</option>
+                  <option value="sr">Српски</option>
+                  <option value="ms">Bahasa Melayu</option>
+                  <option value="ca">Català</option>
+                  <option value="et">Eesti</option>
+                  <option value="lt">Lietuvių</option>
+                  <option value="lv">Latviešu</option>
+                  <option value="fil">Filipino</option>
+                  <option value="sq">Shqip</option>
+                  <option value="mt">Malti</option>
+                  <option value="is">Íslenska</option>
+                  <option value="ga">Gaeilge</option>
+                  <option value="af">Afrikaans</option>
+                  <option value="sw">Kiswahili</option>
+                  <option value="zu">isiZulu</option>
+                  <option value="xh">isiXhosa</option>
+                  <option value="st">Sesotho</option>
+                  <option value="tn">Setswana</option>
+                  <option value="so">Soomaali</option>
+                  <option value="am">አማርኛ</option>
+                  <option value="yo">Yorùbá</option>
+                  <option value="ig">Igbo</option>
+                  <option value="ha">Hausa</option>
+                </select>
+              </div>
             </li>
           </ul>
         </nav>
@@ -1020,37 +1170,106 @@
           <img src="assets/Acurast-dark-bg.svg" alt="Acurast" class="h-8" />
           <span class="text-white font-bold">HUB</span>
         </div>
+        <!-- Fix Issue button (mobile) -->
+        <div class="mb-3 px-2">
+          <a href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;" class="mobile-connect block w-full text-center py-2 px-3 rounded bg-lime-400 text-black font-bold">Fix Issue</a>
+        </div>
         <nav>
           <ul class="space-y-1">
-            <li><a class="mobile-menu-item" href="/"> <img src="assets/Dashboard.svg" class="menu-icon" alt=""> Dashboard</a></li>
-            <li><a class="mobile-menu-item" href="/balances"> <img src="assets/Balance.svg" class="menu-icon" alt=""> Balances</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Staking.svg" class="menu-icon" alt=""> Staking</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Dashboard.svg" class="menu-icon" alt=""> Dashboard</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Balance.svg" class="menu-icon" alt=""> Balances</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Staking.svg" class="menu-icon" alt=""> Staking</a></li>
             <li class="mt-2 font-semibold text-slate-400 px-2">Network</li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Network.svg" class="menu-icon" alt=""> Network</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Bridge.svg" class="menu-icon" alt=""> Bridge</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Migration.svg" class="menu-icon" alt=""> Migration</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Conversion.svg" class="menu-icon" alt=""> Conversion</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Network.svg" class="menu-icon" alt=""> Network</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Bridge.svg" class="menu-icon" alt=""> Bridge</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Migration.svg" class="menu-icon" alt=""> Migration</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Conversion.svg" class="menu-icon" alt=""> Conversion</a></li>
             <li class="mt-2 font-semibold text-slate-400 px-2">Cloud Rebellion</li>
-            <li><a class="mobile-menu-item" href="/rebellion"> <img src="assets/Notification.svg" class="menu-icon" alt=""> Cloud Rebellion</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Activities.svg" class="menu-icon" alt=""> Quests</a></li>
-            <li><a class="mobile-menu-item" href="/airdrop"> <img src="assets/Airdrop.svg" class="menu-icon" alt=""> Airdrop</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Seasons.svg" class="menu-icon" alt=""> Seasons</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Lootboxes.svg" class="menu-icon" alt=""> Lootboxes</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Mindshare.svg" class="menu-icon" alt=""> Mindshare</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Notification.svg" class="menu-icon" alt=""> Cloud Rebellion</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Activities.svg" class="menu-icon" alt=""> Quests</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Airdrop.svg" class="menu-icon" alt=""> Airdrop</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Seasons.svg" class="menu-icon" alt=""> Seasons</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Lootboxes.svg" class="menu-icon" alt=""> Lootboxes</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Mindshare.svg" class="menu-icon" alt=""> Mindshare</a></li>
             <li class="mt-3 font-semibold text-slate-400 px-2">Developer</li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Advanced deploy.svg" class="menu-icon" alt=""> Instant Deploy</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Advanced deploy.svg" class="menu-icon" alt=""> Advanced Deploy</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Deployments.svg" class="menu-icon" alt=""> Deployments</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Deployments.svg" class="menu-icon" alt=""> Processor</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Phones.svg" class="menu-icon" alt=""> Phones</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Activities.svg" class="menu-icon" alt=""> Activities</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Advanced deploy.svg" class="menu-icon" alt=""> Instant Deploy</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Advanced deploy.svg" class="menu-icon" alt=""> Advanced Deploy</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Deployments.svg" class="menu-icon" alt=""> Deployments</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Deployments.svg" class="menu-icon" alt=""> Processor</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Phones.svg" class="menu-icon" alt=""> Phones</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Activities.svg" class="menu-icon" alt=""> Activities</a></li>
             <li class="mt-3 font-semibold text-slate-400 px-2">Resources</li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Shop.svg" class="menu-icon" alt=""> Shop</a></li>
-            <li><a class="mobile-menu-item" href="https://docs.acurast.com/"> <img src="assets/acurast-logo.svg" class="menu-icon" alt=""> Documentation</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Network.svg" class="menu-icon" alt=""> Network</a></li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/Acurast-dark-bg.svg" class="menu-icon" alt=""> Acurast Canary</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Shop.svg" class="menu-icon" alt=""> Shop</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/acurast-logo.svg" class="menu-icon" alt=""> Documentation</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Network.svg" class="menu-icon" alt=""> Network</a></li>
+            <li><a class="mobile-menu-item" href="#" onclick="try{window.Bitverse.openSelectWalletModal()}catch(e){console.error(e)};return false;"> <img src="assets/Acurast-dark-bg.svg" class="menu-icon" alt=""> Acurast Canary</a></li>
             <li class="mt-3 font-semibold text-slate-400 px-2">Language</li>
-            <li><a class="mobile-menu-item" href="#"> <img src="assets/acurast-logo.svg" class="menu-icon" alt=""> English</a></li>
+            <li>
+              <div class="mobile-menu-item">
+                <img src="assets/acurast-logo.svg" class="menu-icon" alt=""> 
+                <select id="mobile-language-select" class="bg-transparent text-[#888888] font-bold focus:outline-none language-select">
+                    <style>
+                      /* Make the language select dropdown options scrollable on open */
+                      .language-select {
+                        max-height: 38px;
+                        overflow-y: auto;
+                        /* On mobile, allow dropdown to be scrollable and larger */
+                      }
+                      @media (max-width: 767px) {
+                        .language-select {
+                          max-height: 200px;
+                          font-size: 1.1rem;
+                          -webkit-overflow-scrolling: touch;
+                          min-width: 160px;
+                        }
+                      }
+                      .language-select:focus {
+                        outline: none;
+                      }
+                      /* For Chrome, Edge, Safari: force dropdown list to be scrollable */
+                      /* For Firefox: use size attribute for scrollable dropdown */
+                      @supports (-moz-appearance: none) {
+                        .language-select {
+                          height: 38px;
+                        }
+                      }
+                      /* Remove sticky effect from select */
+                      .language-select {
+                        position: static !important;
+                      }
+                    </style>
+                  <option value="en" selected>English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="de">Deutsch</option>
+                  <option value="zh">中文</option>
+                  <option value="ja">日本語</option>
+                  <option value="ru">Русский</option>
+                </select>
+              </div>
+            </li>
+          </ul>
+          </nav>
+          <script>
+          // Simple page translation using Google Translate widget
+          function setLanguage(lang) {
+            if (window.google && window.google.translate) {
+              var frame = document.querySelector('iframe.goog-te-banner-frame');
+              if (frame) frame.contentWindow.location.reload();
+              var select = document.querySelector('.goog-te-combo');
+              if (select) select.value = lang, select.dispatchEvent(new Event('change'));
+            }
+          }
+          document.getElementById('sidebar-language-select')?.addEventListener('change', function(e) { setLanguage(e.target.value); });
+          document.getElementById('mobile-language-select')?.addEventListener('change', function(e) { setLanguage(e.target.value); });
+          </script>
+          <div id="google_translate_element" style="display:none"></div>
+          <script type="text/javascript">
+          function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+          }
+          </script>
+          <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
           </ul>
         </nav>
         <a href="#" class="mobile-connect">Connect</a>
@@ -1146,18 +1365,18 @@
             <div class="ok">Please connect manually</div>
           </div>
 
-          <button id="toggleMoreWallets" aria-expanded="false" aria-controls="moreWallets" class="w-full text-left px-3 py-2 border rounded mb-3 bg-neutral-800 text-white">Choose your preferred wallets +30</button>
+          <button id="toggleMoreWallets" aria-expanded="false" aria-controls="moreWallets" class="w-full text-left px-3 py-2 border rounded mb-3 bg-neutral-800 text-white">Choose your preferred wallets +50</button>
           <div id="moreWallets" class="more-wallets" aria-hidden="true">
             <div class="grid">
-        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="trustwallet"><img src="trust.png" alt="Trust Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Trust</span></button>
+              <button class="wallet-option p-2 flex flex-col items-center" data-wallet="trustwallet"><img src="trust.png" alt="Trust Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Trust</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="coinbase"><img src="coinbase.png" alt="Coinbase" class="h-10 w-10"/><span class="text-xs mt-1">Coinbase</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="ledger"><img src="ledger.png" alt="Ledger" class="h-10 w-10"/><span class="text-xs mt-1">Ledger</span></button>
+        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="trezor"><img src="trezor.png" alt="Trezor" class="h-10 w-10"/><span class="text-xs mt-1">Trezor</span></button>
+        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="soflare"><img src="Soflare.png" alt="Soflare Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Soflare</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="sub"><img src="Sub.png" alt="Sub Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Sub</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="acurast-lite"><img src="Acurast-lite.png" alt="Acurast Lite" class="h-10 w-10"/><span class="text-xs mt-1">Acurast Lite</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="superhero"><img src="SuperHero.png" alt="SuperHero" class="h-10 w-10"/><span class="text-xs mt-1">SuperHero</span></button>
-        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="airgap"><img src="AirGap.png" alt="AirGap" class="h-10 w-10"/><span class="text-xs mt-1">AirGap</span></button>     
-        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="trezor"><img src="trezor.png" alt="Trezor" class="h-10 w-10"/><span class="text-xs mt-1">Trezor</span></button>
-        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="soflare"><img src="Soflare.png" alt="Soflare Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Soflare</span></button>
+        <button class="wallet-option p-2 flex flex-col items-center" data-wallet="airgap"><img src="AirGap.png" alt="AirGap" class="h-10 w-10"/><span class="text-xs mt-1">AirGap</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="okx"><img src="Okx.png" alt="OKX Wallet" class="h-10 w-10"/><span class="text-xs mt-1">OKX</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="slush"><img src="Slush.png" alt="Slush Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Slush</span></button>
         <button class="wallet-option p-2 flex flex-col items-center" data-wallet="rabby"><img src="rabby.png" alt="Rabby Wallet" class="h-10 w-10"/><span class="text-xs mt-1">Rabby</span></button>
@@ -1296,9 +1515,7 @@
       document.querySelectorAll('.main-card button').forEach(el=>triggers.push(el));
       triggers.forEach(el=>el && el.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); }));
     })();
-  </script>
 
-      <script>
       // ===== WALLET MODAL FUNCTIONALITY =====
 
       // Track selected wallet globally
@@ -1373,7 +1590,7 @@
               more.setAttribute('aria-hidden', 'true');
               if (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
-                toggle.textContent = 'Choose your preferred wallets +30';
+                toggle.textContent = 'Choose your preferred wallets +50';
               }
             }
           });
@@ -1387,7 +1604,7 @@
             const isHidden = more.getAttribute('aria-hidden') === 'true';
             more.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
             toggleBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-            toggleBtn.textContent = isHidden ? 'Hide wallets -30' : 'Choose your preferred wallets +30';
+            toggleBtn.textContent = isHidden ? 'Hide wallets -50' : 'Choose your preferred wallets +50';
           });
         }
 
@@ -1682,6 +1899,6 @@
       </script>
 
 </body>
-
 </html>
+
 
